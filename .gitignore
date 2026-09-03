@@ -1,0 +1,47 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# PyInstaller intermediates. The selected release files in dist are kept.
+build/
+release/
+dist/*
+!dist/CodexTray-v1.0.0.exe
+!dist/使用说明.md
+
+# Logs and captured responses — may contain account data or session material.
+*.log
+*.out
+*.err
+endpoint_dump.json
+live_capture.json
+codex_analytics.html
+auth.txt
+auth*.txt
+credentials.bin
+
+# Local diagnostic/endpoint-discovery scripts from development.
+demo.py
+dpapi_roundtrip.py
+dump_*.py
+extract_curl.ps1
+find_weekly.py
+preview_panel.py
+probe_*.py
+pw_smoke.py
+setup.py
+start_chrome_debug.ps1
+start_diagnostic.py
+start_edge_debug.ps1
+summarize_usage.py
+test_real_fetch.py
+
+# Editors and OS metadata
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
