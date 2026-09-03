@@ -37,6 +37,9 @@ if __name__ == "__main__":
         try:
             _run_qt(args)
         except ImportError as exc:
-            print(f"[warn] PySide6 import failed: {exc}; falling back to pystray.",
-                  file=sys.stderr)
+            if sys.stderr is not None:
+                print(
+                    f"[warn] PySide6 import failed: {exc}; falling back to pystray.",
+                    file=sys.stderr,
+                )
             _run_pystray(args)

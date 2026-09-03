@@ -14,7 +14,10 @@ import sys
 import traceback
 import webbrowser
 
-faulthandler.enable()
+# A PyInstaller windowed executable intentionally has no stderr stream.
+# Enabling faulthandler without a target stream raises at import time.
+if sys.stderr is not None:
+    faulthandler.enable()
 
 
 def _excepthook(exc_type, exc_value, exc_tb):
@@ -22,7 +25,8 @@ def _excepthook(exc_type, exc_value, exc_tb):
         "UNCAUGHT EXCEPTION:\n%s",
         "".join(traceback.format_exception(exc_type, exc_value, exc_tb)),
     )
-    sys.__excepthook__(exc_type, exc_value, exc_tb)
+    if sys.stderr is not None:
+        sys.__excepthook__(exc_type, exc_value, exc_tb)
 
 
 sys.excepthook = _excepthook

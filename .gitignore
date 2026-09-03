@@ -11,6 +11,7 @@ build/
 release/
 dist/*
 !dist/CodexTray-v1.0.0.exe
+!dist/CodexTray-v1.0.1.exe
 !dist/使用说明.md
 
 # Logs and captured responses — may contain account data or session material.
