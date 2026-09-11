@@ -132,11 +132,16 @@ def parse_pasted(text: str) -> dict:
             headers[k.strip().lower()] = v.strip()
 
     # cURL also takes cookies via -b / --cookie (no header needed).
+    # Chrome/Edge's Bash export commonly uses `-b '...'`.  Cookie values
+    # may themselves contain double quotes (for example `_uasid="..."`),
+    # so the old `[^'"]+` pattern incorrectly rejected the whole cookie
+    # argument.  Respect the outer quote style instead.
     for m in re.finditer(
-        r"""(?:^|\s)-[bB]\s+['"](?P<v>[^'"]+)['"](?=\s|\\|\Z)""",
+        r"""(?:^|\s)-[bB]\s+(?:'(?P<single>[^']*)'|"(?P<double>[^"]*)")(?=\s|\\|\Z)""",
         joined,
     ):
-        for pair in m.group("v").split(";"):
+        cookie_blob = m.group("single") or m.group("double") or ""
+        for pair in cookie_blob.split(";"):
             pair = pair.strip()
             if "=" in pair:
                 n, v = pair.split("=", 1)
