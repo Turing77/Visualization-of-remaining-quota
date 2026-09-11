@@ -56,6 +56,19 @@ python -m PyInstaller --noconfirm --clean CodexTray.spec
 - 不要提交或分享 DevTools cURL、Cookie、抓包日志、Analytics HTML 或接口响应。
 - 迁移到另一台机器时，需要在新机器重新获取并导入凭据。
 
+## 凭据导入故障排查
+
+重新获取登录凭据时，请在浏览器中选择 **Copy as cURL (bash)**。不要使用 `cmd` 或 PowerShell 格式，也不要只复制请求 URL。
+
+导入脚本支持 Chrome/Edge Bash 导出的 `-b '...'` Cookie 参数，包括 Cookie 值内部包含双引号的情况。请在项目目录中运行：
+
+```powershell
+Set-Location 'C:\Users\TURING\Desktop\h_agent'
+python from_pasted.py --pasted-file auth.txt --proxy http://127.0.0.1:7890
+```
+
+只有在 Analytics 请求和 `/api/auth/session` 都返回 HTTP 200，并看到 `encrypted credentials written` 后，才算导入成功。导入完成后请删除明文 `auth.txt`；其中包含登录 Cookie，不要提交或分享。
+
 ## 测试
 
 ```powershell
