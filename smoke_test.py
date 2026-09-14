@@ -11,6 +11,48 @@ from codex_tray.poller import Poller
 from codex_tray.snapshot import ModelUsage, Snapshot
 
 
+def test_parse_pasted_chrome_bash_curl() -> None:
+    """Chrome's Bash export uses --url and -b, not a Cookie header."""
+    from from_pasted import parse_pasted
+
+    pasted = r'''curl --url 'https://chatgpt.com/codex/cloud/settings/analytics' \
+      -b 'first=one; quoted="value"; session=three' \
+      -H 'user-agent: Test Browser/1.0' '''
+    parsed = parse_pasted(pasted)
+    assert parsed["url_seen"] == (
+        "https://chatgpt.com/codex/cloud/settings/analytics"
+    )
+    assert parsed["cookies"] == [
+        ("first", "one"),
+        ("quoted", '"value"'),
+        ("session", "three"),
+    ]
+    assert parsed["user_agent"] == "Test Browser/1.0"
+
+    long_form = parse_pasted(
+        "curl.exe --url=https://chatgpt.com/ --cookie='token=abc'"
+    )
+    assert long_form["url_seen"] == "https://chatgpt.com/"
+    assert long_form["cookies"] == [("token", "abc")]
+    print("[ok] Chrome/Edge Bash cURL supports --url and -b/--cookie")
+
+
+def test_extract_session_details() -> None:
+    from from_pasted import extract_session_details
+
+    body = '''{
+      "accessToken": "test-access-token",
+      "user": {"email": "person@example.com", "id": "user-123"}
+    }'''
+    assert extract_session_details(body) == (
+        "test-access-token",
+        "person@example.com",
+        "user-123",
+    )
+    assert extract_session_details("not JSON") == (None, None, None)
+    print("[ok] auth/session access token extraction")
+
+
 def test_parse_wham_real_response() -> None:
     """Real `/backend-api/wham/usage` response shape, captured live."""
     body = """{
@@ -235,6 +277,8 @@ def test_plus_mock_snapshot() -> None:
 
 
 if __name__ == "__main__":
+    test_parse_pasted_chrome_bash_curl()
+    test_extract_session_details()
     test_compile_all()
     test_snapshot_text()
     test_short_name()

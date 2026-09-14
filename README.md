@@ -20,7 +20,7 @@ Codex Tray 是一个适用于 Windows 10/11 的系统托盘工具，用于显示
 
 无需安装 Python，可直接下载：
 
-- [CodexTray-v1.0.1.exe](dist/CodexTray-v1.0.1.exe)
+- [CodexTray-v1.0.3.exe](dist/CodexTray-v1.0.3.exe)
 - [完整中文使用说明](使用说明.md)
 
 建议先把 EXE 放到固定目录再启动。首次运行后，按照使用说明从已登录 ChatGPT 的浏览器获取 Analytics 请求，并通过托盘菜单 **导入/更新登录凭据…** 导入。

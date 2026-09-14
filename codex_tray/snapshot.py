@@ -131,7 +131,7 @@ class Snapshot:
         call to NIM_ADD.
         """
         if self.needs_relogin:
-            text = "Codex Tray · login expired (run `python from_pasted.py`)"
+            text = "Codex Tray · login expired (update login credentials)"
         elif not self.ok or not self.models:
             text = self._error_headline()
         else:
@@ -145,9 +145,9 @@ class Snapshot:
                 "Codex Tray",
                 "─" * 20,
                 "⚠  Login expired.",
-                "Cookies are invalid or revoked. Re-run:",
-                "    python from_pasted.py",
-                "and paste a fresh cURL from Edge DevTools.",
+                "Cookies or access token are invalid.",
+                "Use the tray menu:",
+                "Import / Update login credentials",
             ]
             return "\n".join(lines)
 

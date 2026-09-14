@@ -125,8 +125,8 @@ class HttpsClient:
     """Pulls weekly usage from `/backend-api/wham/usage`.
 
     Args:
-        access_token: optional Bearer token (currently unused — we send via
-            Cookie header instead, matching Edge's own requests).
+        access_token: Bearer token obtained from ``/api/auth/session``.
+            The current wham endpoint requires it in addition to cookies.
         cookies:      list of cookie dicts (from playwright or Edge DevTools).
         user_agent:   desktop UA string used to look like a real browser.
         proxy_url:    optional HTTP/HTTPS/SOCKS5 proxy URL.

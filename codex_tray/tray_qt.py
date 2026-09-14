@@ -157,8 +157,13 @@ class CodexTrayApp:
         if dialog.exec() != QDialog.Accepted:
             return
         try:
-            from from_pasted import parse_pasted
+            from from_pasted import (
+                extract_session_details,
+                fetch_url,
+                parse_pasted,
+            )
             parsed = parse_pasted(pasted.toPlainText())
+            proxy_url = proxy.text().strip()
             cookies = [
                 {
                     "name": name,
@@ -171,11 +176,28 @@ class CodexTrayApp:
                 }
                 for name, value in parsed["cookies"]
             ]
+            session_status, session_body = fetch_url(
+                "https://chatgpt.com/api/auth/session",
+                parsed["cookies"],
+                parsed["user_agent"],
+                parsed["origin"],
+                parsed["referer"],
+                proxy_url=proxy_url,
+            )
+            access_token, _user_email, _user_id = extract_session_details(
+                session_body
+            )
+            if session_status != 200 or not access_token:
+                raise RuntimeError(
+                    "Cookie import succeeded, but ChatGPT did not return an "
+                    f"access token (HTTP {session_status}). Copy a fresh "
+                    "chatgpt.com request and try again."
+                )
             creds_mod.save({
                 "cookies": cookies,
-                "access_token": None,
+                "access_token": access_token,
                 "user_agent": parsed["user_agent"],
-                "proxy_url": proxy.text().strip(),
+                "proxy_url": proxy_url,
             })
         except BaseException as exc:
             QMessageBox.critical(

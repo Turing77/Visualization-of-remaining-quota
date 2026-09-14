@@ -100,7 +100,14 @@ def parse_pasted(text: str) -> dict:
     method = "GET"
     target_url = None
 
-    m = re.search(r"""curl\s+['"]?(?P<url>https?://[^\s'"]+)['"]?""", joined)
+    # Recent Chrome/Edge builds may emit either ``curl 'URL'`` or
+    # ``curl --url 'URL'``.  Accept both forms (and curl.exe) so the URL is
+    # retained in the saved credential metadata.
+    m = re.search(
+        r"""curl(?:\.exe)?\s+(?:--url(?:\s+|=))?['"]?(?P<url>https?://[^\s'"]+)['"]?""",
+        joined,
+        re.IGNORECASE,
+    )
     if m:
         target_url = m.group("url")
 
@@ -137,8 +144,9 @@ def parse_pasted(text: str) -> dict:
     # so the old `[^'"]+` pattern incorrectly rejected the whole cookie
     # argument.  Respect the outer quote style instead.
     for m in re.finditer(
-        r"""(?:^|\s)-[bB]\s+(?:'(?P<single>[^']*)'|"(?P<double>[^"]*)")(?=\s|\\|\Z)""",
+        r"""(?:^|\s)(?:-[bB]|--cookie)(?:\s+|=)(?:'(?P<single>[^']*)'|"(?P<double>[^"]*)")(?=\s|\\|\Z)""",
         joined,
+        re.IGNORECASE,
     ):
         cookie_blob = m.group("single") or m.group("double") or ""
         for pair in cookie_blob.split(";"):
@@ -149,7 +157,7 @@ def parse_pasted(text: str) -> dict:
 
     if not cookies:
         raise SystemExit(
-            "no `cookie:` header found in pasted text.\n"
+            "no Cookie data found in pasted text (`cookie:` / `-b` / `--cookie`).\n"
             "  - Make sure you used 'Copy as cURL (BASH)' (not 'cmd').\n"
             "  - Or paste the JSON snippet from the docs."
         )
@@ -229,6 +237,25 @@ def extract_next_data(html: str) -> dict | None:
         return None
 
 
+def extract_session_details(body: str) -> tuple[str | None, str | None, str | None]:
+    """Return ``(access_token, user_email, user_id)`` from auth/session JSON."""
+    try:
+        parsed_body = json.loads(body)
+    except Exception:
+        return None, None, None
+    if not isinstance(parsed_body, dict):
+        return None, None, None
+
+    access_token = parsed_body.get("accessToken") or parsed_body.get("access_token")
+    user_email = None
+    user_id = None
+    user = parsed_body.get("user")
+    if isinstance(user, dict):
+        user_email = user.get("email")
+        user_id = user.get("id")
+    return access_token, user_email, user_id
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pasted-file", required=True,
@@ -292,19 +319,7 @@ def main():
         parsed["origin"], parsed["referer"],
         proxy_url=args.proxy,
     )
-    access_token = None
-    user_email = None
-    user_id = None
-    try:
-        parsed_body = json.loads(body)
-        if isinstance(parsed_body, dict):
-            access_token = parsed_body.get("accessToken") or parsed_body.get("access_token")
-            u = parsed_body.get("user")
-            if isinstance(u, dict):
-                user_email = u.get("email")
-                user_id = u.get("id")
-    except Exception:
-        pass
+    access_token, user_email, user_id = extract_session_details(body)
     print(f"\n[step] /api/auth/session -> HTTP {status}")
     if user_email or user_id:
         print(f"       user.email    = {user_email}")
